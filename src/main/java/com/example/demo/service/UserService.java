@@ -17,4 +17,16 @@ public class UserService {
         }
         return null;
     }
+
+    public void saveAdmin(String login, String password, String description, String databaseName) {
+        User user = new User();
+        user.setLogin(login);
+        user.setPassword(password);
+        user.setAdminRules("admin");
+        user.setDescription(description);
+        user.setDatabaseName(databaseName);
+
+        userRepository.save(user);
+    }
 }
+
