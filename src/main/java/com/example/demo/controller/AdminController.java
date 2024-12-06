@@ -1,10 +1,15 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.User;
 import com.example.demo.service.DatabaseService;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/admin")
@@ -16,23 +21,25 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/fetchAll")
+    public ResponseEntity<List<Map<String, Object>>> fetchAllAdmins() {
+        List<Map<String, Object>> admins = databaseService.fetchAllAdmins();
+        return ResponseEntity.ok(admins);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createAdmin(@RequestBody AdminRequest adminRequest) {
-        // Проверяем, что все данные заполнены
         if (adminRequest.getLogin() == null || adminRequest.getPassword() == null ||
                 adminRequest.getDescription() == null || adminRequest.getDatabaseName() == null) {
             return ResponseEntity.badRequest().body("Все поля должны быть заполнены.");
         }
-
-        // Создаем базу данных и таблицу
         databaseService.createDatabaseAndTable(adminRequest.getDatabaseName());
 
-        // Сохраняем пользователя в основной базе данных
         userService.saveAdmin(adminRequest.getLogin(), adminRequest.getPassword(),
                 adminRequest.getDescription(), adminRequest.getDatabaseName());
-
         return ResponseEntity.ok("Администратор создан успешно.");
     }
+
 
     static class AdminRequest {
         private String login;

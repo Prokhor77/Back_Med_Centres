@@ -7,17 +7,23 @@ import org.springframework.stereotype.Service;
 import javax.sql.DataSource;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class DatabaseService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    public List<Map<String, Object>> fetchAllAdmins() {
+        String sql = "SELECT login, password, description, database_name FROM users";
+        return jdbcTemplate.queryForList(sql);
+    }
+
     public void createDatabaseAndTable(String databaseName) {
-        // Создаем новую базу данных
         jdbcTemplate.execute("CREATE DATABASE " + databaseName);
 
-        // Создаем подключение к новой базе данных
         DataSource newDataSource = DataSourceBuilder.create()
                 .url("jdbc:postgresql://212.193.30.42:5432/" + databaseName)
                 .username("admin")
@@ -25,7 +31,6 @@ public class DatabaseService {
                 .driverClassName("org.postgresql.Driver")
                 .build();
 
-        // Используем новое подключение для создания таблицы
         JdbcTemplate newDbTemplate = new JdbcTemplate(newDataSource);
         newDbTemplate.execute("CREATE TABLE doctors (" +
                 "id BIGSERIAL PRIMARY KEY, " +
