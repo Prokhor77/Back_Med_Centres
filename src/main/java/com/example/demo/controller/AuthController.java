@@ -4,22 +4,27 @@ import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/login")
+@RequestMapping("/api")
 public class AuthController {
     @Autowired
     private UserService userService;
 
-    @PostMapping
+    @GetMapping("/descriptions")
+    public ResponseEntity<List<String>> getDescriptions() {
+        List<String> descriptions = userService.getUniqueDescriptions();
+        return ResponseEntity.ok(descriptions);
+    }
+
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        User user = userService.authenticate(loginRequest.getLogin(), loginRequest.getPassword());
+        User user = userService.authenticate(loginRequest.getLogin(), loginRequest.getPassword(), loginRequest.getDescription());
         if (user == null) {
-            return ResponseEntity.status(401).body("Invalid login or password");
+            return ResponseEntity.status(401).body("Invalid login, password, or description");
         }
 
         return ResponseEntity.ok(new LoginResponse(user.getLogin(), user.getAdminRules()));
@@ -29,12 +34,17 @@ public class AuthController {
     static class LoginRequest {
         private String login;
         private String password;
+        private String description;  // Добавляем описание в запрос
 
         // Getters and setters
         public String getLogin() { return login; }
         public void setLogin(String login) { this.login = login; }
+
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+
+        public String getDescription() { return description; }  // Геттер для description
+        public void setDescription(String description) { this.description = description; }  // Сеттер для description
     }
 
     static class LoginResponse {

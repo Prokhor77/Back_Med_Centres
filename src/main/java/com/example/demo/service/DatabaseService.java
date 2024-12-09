@@ -16,8 +16,17 @@ public class DatabaseService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    public void dropDatabase(String databaseName) {
+        jdbcTemplate.execute("DROP DATABASE IF EXISTS " + databaseName);
+    }
+
+    public void renameDatabase(String oldDatabaseName, String newDatabaseName) {
+        jdbcTemplate.execute(String.format("ALTER DATABASE %s RENAME TO %s;", oldDatabaseName, newDatabaseName));
+    }
+
+
     public List<Map<String, Object>> fetchAllAdmins() {
-        String sql = "SELECT login, password, description, database_name FROM users";
+        String sql = "SELECT id, login, password, description, database_name FROM users";
         return jdbcTemplate.queryForList(sql);
     }
 

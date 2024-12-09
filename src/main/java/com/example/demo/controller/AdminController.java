@@ -27,6 +27,46 @@ public class AdminController {
         return ResponseEntity.ok(admins);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteAdmin(@PathVariable Long id) {
+        try {
+            String databaseName = userService.getDatabaseNameById(id);
+
+            if (databaseName == null) {
+                return ResponseEntity.badRequest().body("Администратор с таким ID не найден.");
+            }
+
+            userService.deleteAdminById(id);
+
+            databaseService.dropDatabase(databaseName);
+
+            return ResponseEntity.ok("Администратор и его база данных успешно удалены.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("Ошибка при удалении администратора: " + ex.getMessage());
+        }
+    }
+
+    @PutMapping("/updateDatabase")
+    public ResponseEntity<?> updateDatabaseName(@RequestBody UpdateRequest updateRequest) {
+        try {
+            Long id = updateRequest.getId();
+            String newDatabaseName = updateRequest.getDatabaseName();
+
+            String oldDatabaseName = userService.getDatabaseNameById(id);
+            if (oldDatabaseName == null) {
+                return ResponseEntity.badRequest().body("Администратор с таким ID не найден.");
+            }
+
+            databaseService.renameDatabase(oldDatabaseName, newDatabaseName);
+
+            userService.updateDatabaseNameById(id, newDatabaseName);
+
+            return ResponseEntity.ok("Название базы данных успешно обновлено.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("Ошибка при обновлении: " + ex.getMessage());
+        }
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createAdmin(@RequestBody AdminRequest adminRequest) {
         if (adminRequest.getLogin() == null || adminRequest.getPassword() == null ||
@@ -40,6 +80,17 @@ public class AdminController {
         return ResponseEntity.ok("Администратор создан успешно.");
     }
 
+
+    static class UpdateRequest {
+        private Long id;
+        private String databaseName;
+
+        // Getters и setters
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public String getDatabaseName() { return databaseName; }
+        public void setDatabaseName(String databaseName) { this.databaseName = databaseName; }
+    }
 
     static class AdminRequest {
         private String login;
